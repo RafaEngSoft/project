@@ -1,0 +1,67 @@
+<div class="product-dashboard">
+  <div class="table-card">
+    <div class="table-header">
+      <h1>Importar Planilha Excel / Lista de Produtos</h1>
+      <p>Inventário atualizado e preços unitários</p>
+    </div>
+
+    <!-- Seletor de arquivo Excel -->
+    <div style="padding: 1.5rem 2rem; border-bottom: 1px solid #dee2e6;">
+      <input type="file" (change)="ReadExcel($event)" accept=".xlsx, .xls" />
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID do Produto</th>
+            <th>Nome do Produto</th>
+            <th>Categoria</th>
+            <th>Preço Unitário</th>
+            <th>Estoque</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loop iterando sobre as linhas da planilha excel_data -->
+          <tr *ngFor="let data of excel_data">
+            <td>
+              <span class="product-id">{{ data.id || data.RollNo || data['ID do produto'] || '-' }}</span>
+            </td>
+            <td>
+              <span class="product-name">{{ data.name || data.nome || data['nome do produto'] || '-' }}</span>
+            </td>
+            <td>
+              <span class="badge category">{{ data.category || data.categoria || data['categoria'] || '-' }}</span>
+            </td>
+            <td class="price">
+              {{ (data.price || data.preco || data['preço unitario'] || data['preço unitário'] || 0) | currency:'BRL':'symbol':'1.2-2' }}
+            </td>
+            <td>
+              <div class="stock-container">
+                <span class="status-dot" [ngClass]="{
+                  'in-stock': (data.stock || data.estoque || data['estoque']) > 0,
+                  'out-of-stock': !(data.stock || data.estoque || data['estoque'])
+                }"></span>
+                <span class="stock-text" [ngClass]="{
+                  'in-stock': (data.stock || data.estoque || data['estoque']) > 0,
+                  'out-of-stock': !(data.stock || data.estoque || data['estoque'])
+                }">
+                  {{ data.stock || data.estoque || data['estoque'] || '0' }} unidades
+                </span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Mensagem amigável quando nenhum arquivo foi importado usando controle de fluxo moderno @if -->
+          @if (!excel_data || excel_data.length === 0) {
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 2.5rem 2rem; color: #6c757d; font-weight: 500;">
+                Nenhum dado importado. Selecione uma planilha Excel acima para carregar os produtos.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

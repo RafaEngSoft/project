@@ -1,0 +1,150 @@
+.product-dashboard {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-card:hover {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.table-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #212529;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.table-header p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th {
+  padding: 1rem 2rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #495057;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+}
+
+td {
+  padding: 1.25rem 2rem;
+  font-size: 0.9rem;
+  color: #495057;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  transition: background-color 0.2s ease;
+}
+
+tr:hover td {
+  background-color: #f8f9fa;
+}
+
+.product-id {
+  font-family: monospace;
+  background-color: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.product-name {
+  font-weight: 600;
+  color: #212529;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 50px;
+  text-align: center;
+}
+
+.badge.category {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.price {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.stock-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.in-stock {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.status-dot.low-stock {
+  background-color: #ff9800;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.status-dot.out-of-stock {
+  background-color: #f44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+.stock-text {
+  font-weight: 600;
+}
+
+.stock-text.in-stock {
+  color: #2e7d32;
+}
+
+.stock-text.low-stock {
+  color: #e65100;
+}
+
+.stock-text.out-of-stock {
+  color: #c62828;
+}
