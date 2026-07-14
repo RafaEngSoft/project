@@ -1,59 +1,82 @@
-# Project
+# Gestão e Controle de Obra 🏗️📊
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.5.
+Este é um dashboard interativo desenvolvido em **Angular** para acompanhamento físico-financeiro, planejamento de custos e controle de desvios em obras de engenharia e projetos. A ferramenta permite a importação de dados diretamente de planilhas do Excel para automatizar a geração de relatórios e gráficos.
 
-## Development server
+---
 
-To start a local development server, run:
+## 🚀 Funcionalidades Principais
 
-```bash
-ng serve
-```
+* **Importação Inteligente de Planilhas (Excel)**:
+  * Suporte a arquivos `.xlsx` e `.xls` através da biblioteca `xlsx`.
+  * Mapeamento inteligente de colunas, capaz de deduzir cabeçalhos mesmo com variações de escrita (ex: "orçado", "planejado", "previsto", "medido").
+  * Algoritmo de busca robusto de metadados gerais (Valor do Contrato, Meses Corridos e Avanço Físico) nas primeiras linhas da planilha.
+  * Normalização inteligente de porcentagens inseridas como números inteiros (ex: `8.33` convertido automaticamente para `8,33%`).
+  * Preenchimento recíproco automático (recalcula valores se a porcentagem estiver presente, e vice-versa).
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+* **Painel de Indicadores (Cards)**:
+  * **Valor do Contrato**: Exibição em formato monetário (BRL).
+  * **Meses Corridos**: Prazo transcorrido da obra.
+  * **Avanço da Obra**: Barra de progresso com porcentagem acumulada de execução física.
 
-## Code scaffolding
+* **Tabela de Custos e Desvios**:
+  * Detalhamento mês a mês contendo:
+    * Valor Realizado e Valor Previsto.
+    * **Desvio Valor**: Diferença absoluta em reais (Realizado - Previsto).
+    * **Desvio / Previsto**: Variação percentual relativa ao planejado para o mês.
+    * **Realizado (% Contrato)** e **Previsto (% Contrato)**: Peso de cada mês frente ao contrato global.
+    * **Desvio (%)**: Desvio percentual do realizado frente ao previsto relativo ao valor total do contrato.
+  * Destaques visuais para desvios positivos (verde) e negativos (vermelho).
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+* **Gráfico de Evolução (Curva S)**:
+  * Gráfico vetorial SVG integrado e responsivo que exibe as curvas acumuladas de **Previsto Acumulado** (azul) e **Realizado Acumulado** (verde).
+  * Linhas de grade monetárias automáticas e interatividade através de dicas de tela ao passar o mouse sobre os pontos do gráfico.
 
-```bash
-ng generate component component-name
-```
+* **Diário de Acompanhamento**:
+  * Ferramenta interativa para adicionar e salvar anotações ou justificativas de desvios de custos mês a mês.
+  * Persistência em memória ao navegar entre diferentes meses selecionados.
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
+## 🛠️ Tecnologias Utilizadas
 
-## Building
+* **Framework**: [Angular](https://angular.dev/) (Versão 22.0.5)
+* **Estilização**: Vanilla CSS (com variáveis CSS e design responsivo moderno com efeito Glassmorphism)
+* **Biblioteca de Excel**: [SheetJS (XLSX)](https://sheetjs.com/)
+* **Compilador**: TypeScript 6
+* **Ferramenta de Build**: Vite / Angular Builder
 
-To build the project run:
+---
 
-```bash
-ng build
-```
+## 📦 Como Instalar e Rodar Localmente
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Pré-requisitos
+* Node.js instalado (versão v20 ou superior recomendada)
+* Gerenciador de pacotes `npm`
 
-## Running unit tests
+### Passos de Instalação
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+1. Clone o repositório ou navegue até o diretório do projeto:
+   ```bash
+   cd project/project
+   ```
 
-```bash
-ng test
-```
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
 
-## Running end-to-end tests
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm start
+   ```
 
-For end-to-end (e2e) testing, run:
+4. Acesse o dashboard no seu navegador:
+   * **URL local**: `http://localhost:4200/`
 
-```bash
-ng e2e
-```
+---
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 🏗️ Estrutura do Código
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+* [home.ts](file:///home/rafael/project/project/src/app/home/home.ts): Lógica em TypeScript para importação do Excel, processamento dos arrays, normalização de porcentagens, busca de metadados e cálculos acumulados da Curva S.
+* [home.html](file:///home/rafael/project/project/src/app/home/home.html): Estrutura HTML do painel contendo os cards de resumo, tabela de dados mensais, o SVG dinâmico da Curva S e a interface do Diário.
+* [home.css](file:///home/rafael/project/project/src/app/home/home.css): Estilos visuais personalizados, incluindo paleta de cores moderna, efeitos de hover, responsividade para diferentes tamanhos de tela e estilização dos gráficos.
