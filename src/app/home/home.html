@@ -7,7 +7,9 @@
     </div>
     <div class="header-actions">
       <label class="btn-import">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload-cloud">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="feather feather-upload-cloud">
           <polyline points="16 16 12 12 8 16"></polyline>
           <line x1="12" y1="12" x2="12" y2="21"></line>
           <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
@@ -24,7 +26,8 @@
     <!-- Card Valor Contrato -->
     <div class="card card-valor">
       <div class="card-icon val-contrato-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="1" x2="12" y2="23"></line>
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
         </svg>
@@ -39,7 +42,8 @@
     <!-- Card Meses Corridos -->
     <div class="card card-meses">
       <div class="card-icon meses-corridos-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
           <line x1="16" y1="2" x2="16" y2="6"></line>
           <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -56,7 +60,8 @@
     <!-- Card Avanço Obra -->
     <div class="card card-avanco">
       <div class="card-icon avanco-obra-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
           <polyline points="17 6 23 6 23 12"></polyline>
         </svg>
@@ -95,84 +100,78 @@
               </tr>
             </thead>
             <tbody>
-              <!-- Empty state row -->
+
               @if (!dadosExcel || dadosExcel.length === 0) {
-                <tr>
-                  <td colspan="8" style="text-align: center; padding: 3rem 2rem; color: #64748b; font-weight: 500;">
-                    Nenhum dado importado. Selecione uma planilha Excel acima para carregar as informações da obra.
-                  </td>
-                </tr>
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 3rem 2rem; color: #64748b; font-weight: 500;">
+                  Nenhum dado importado. Selecione uma planilha Excel acima para carregar as informações da obra.
+                </td>
+              </tr>
               }
 
-              <tr *ngFor="let data of dadosExcel" [ngClass]="{'inactive-row': data.valorRealizado === null && data.valorPrevisto === null}">
+              <tr *ngFor="let data of dadosExcel"
+                [ngClass]="{'inactive-row': data.valorRealizado === null && data.valorPrevisto === null}">
                 <td class="col-month"><strong>{{ data.mes }}</strong></td>
-                
+
                 <!-- Valor Realizado -->
                 <td>
                   {{ data.valorRealizado !== null ? (data.valorRealizado | currency:'BRL':'symbol':'1.2-2') : '-' }}
                 </td>
-                
+
                 <!-- Valor Previsto -->
                 <td>
                   {{ data.valorPrevisto !== null ? (data.valorPrevisto | currency:'BRL':'symbol':'1.2-2') : '-' }}
                 </td>
-                
+
                 <!-- Desvio Valor -->
                 <td [ngClass]="{'text-negative': data.desvioValor < 0, 'text-positive': data.desvioValor > 0}">
                   @if (data.desvioValor !== null) {
-                    @if (data.desvioValor < 0) {
-                      ({{ -data.desvioValor | currency:'BRL':'symbol':'1.2-2' }})
-                    } @else {
-                      {{ data.desvioValor | currency:'BRL':'symbol':'1.2-2' }}
-                    }
-                  } @else {
-                    -
-                  }
-                </td>
-                
-                <!-- Desvio / Previsto -->
-                <td [ngClass]="{'text-negative': data.desvioVSPrevisto < 0, 'text-positive': data.desvioVSPrevisto > 0}">
+                  @if (data.desvioValor < 0) { ({{ -data.desvioValor | currency:'BRL':'symbol':'1.2-2' }}) } @else { {{
+                    data.desvioValor | currency:'BRL':'symbol':'1.2-2' }} } } @else { - } </td>
+
+                    <!-- Desvio / Previsto -->
+                <td
+                  [ngClass]="{'text-negative': data.desvioVSPrevisto < 0, 'text-positive': data.desvioVSPrevisto > 0}">
                   {{ data.desvioVSPrevisto !== null ? (data.desvioVSPrevisto | percent:'1.1-1') : '-' }}
                 </td>
-                
+
                 <!-- Realizado (% Contrato) -->
                 <td>
                   {{ data.realizadoPorcContrato !== null ? (data.realizadoPorcContrato | percent:'1.1-1') : '-' }}
                 </td>
-                
+
                 <!-- Previsto (% Contrato) -->
                 <td>
                   {{ data.previstoPorcContrato !== null ? (data.previstoPorcContrato | percent:'1.1-1') : '-' }}
                 </td>
-                
+
                 <!-- Desvio (% Contrato) -->
-                <td [ngClass]="{'text-negative': data.desvioPorcContrato < 0, 'text-positive': data.desvioPorcContrato > 0}">
+                <td
+                  [ngClass]="{'text-negative': data.desvioPorcContrato < 0, 'text-positive': data.desvioPorcContrato > 0}">
                   {{ data.desvioPorcContrato !== null ? (data.desvioPorcContrato | percent:'1.1-1') : '-' }}
                 </td>
               </tr>
-              
+
               <!-- Total Row (only show if data exists) -->
               @if (dadosExcel && dadosExcel.length > 0) {
-                <tr class="total-row">
-                  <td><strong>TOTAL GERAL</strong></td>
-                  <td>{{ totalRealizado | currency:'BRL':'symbol':'1.2-2' }}</td>
-                  <td>{{ totalPrevisto | currency:'BRL':'symbol':'1.2-2' }}</td>
-                  <td [ngClass]="{'text-negative': totalDesvio < 0, 'text-positive': totalDesvio > 0}">
-                    @if (totalDesvio < 0) {
-                      ({{ -totalDesvio | currency:'BRL':'symbol':'1.2-2' }})
-                    } @else {
-                      {{ totalDesvio | currency:'BRL':'symbol':'1.2-2' }}
-                    }
-                  </td>
-                  <td [ngClass]="{'text-negative': totalDesvioPercentual < 0, 'text-positive': totalDesvioPercentual > 0}">
-                    {{ totalDesvioPercentual | percent:'1.1-1' }}
-                  </td>
-                  <td>{{ totalRealizadoPorcContrato | percent:'1.1-1' }}</td>
-                  <td>{{ totalPrevistoPorcContrato | percent:'1.1-1' }}</td>
-                  <td [ngClass]="{'text-negative': totalDesvioPorcContrato < 0, 'text-positive': totalDesvioPorcContrato > 0}">
-                    {{ totalDesvioPorcContrato | percent:'1.1-1' }}
-                  </td>
-                </tr>
+              <tr class="total-row">
+                <td><strong>TOTAL GERAL</strong></td>
+                <td>{{ totalRealizado | currency:'BRL':'symbol':'1.2-2' }}</td>
+                <td>{{ totalPrevisto | currency:'BRL':'symbol':'1.2-2' }}</td>
+                <td [ngClass]="{'text-negative': totalDesvio < 0, 'text-positive': totalDesvio > 0}">
+                  @if (totalDesvio < 0) { ({{ -totalDesvio | currency:'BRL':'symbol':'1.2-2' }}) } @else { {{
+                    totalDesvio | currency:'BRL':'symbol':'1.2-2' }} } </td>
+                <td
+                  [ngClass]="{'text-negative': totalDesvioPercentual < 0, 'text-positive': totalDesvioPercentual > 0}">
+                  {{ totalDesvioPercentual | percent:'1.1-1' }}
+                </td>
+                <td>{{ totalRealizadoPorcContrato | percent:'1.1-1' }}</td>
+                <td>{{ totalPrevistoPorcContrato | percent:'1.1-1' }}</td>
+                <td
+                  [ngClass]="{'text-negative': totalDesvioPorcContrato < 0, 'text-positive': totalDesvioPorcContrato > 0}">
+                  {{ totalDesvioPorcContrato | percent:'1.1-1' }}
+                </td>
+              </tr>
               }
             </tbody>
           </table>
@@ -190,46 +189,53 @@
         </div>
         <div class="chart-container">
           @if (dadosExcel && dadosExcel.length > 0) {
-            <svg viewBox="0 0 600 240" width="100%" height="100%">
-              <!-- Grid Lines -->
-              <g *ngFor="let grid of linhasGradeY">
-                <line x1="85" [attr.y1]="grid.y" x2="570" [attr.y2]="grid.y" stroke="#f1f5f9" stroke-width="1" />
-                <text x="75" [attr.y]="grid.y + 3" fill="#94a3b8" font-size="8.5" text-anchor="end" font-weight="500">{{ grid.label }}</text>
-              </g>
+          <svg viewBox="0 0 600 240" width="100%" height="100%">
+            <!-- Grid Lines -->
+            <g *ngFor="let grid of linhasGradeY">
+              <line x1="85" [attr.y1]="grid.y" x2="570" [attr.y2]="grid.y" stroke="#f1f5f9" stroke-width="1" />
+              <text x="75" [attr.y]="grid.y + 3" fill="#94a3b8" font-size="8.5" text-anchor="end" font-weight="500">{{
+                grid.label }}</text>
+            </g>
 
-              <!-- X Grid Labels -->
-              <g *ngFor="let item of rotulosGradeX">
-                <line [attr.x1]="item.x" y1="210" [attr.x2]="item.x" y2="214" stroke="#cbd5e1" stroke-width="1" />
-                <text [attr.x]="item.x" y="226" fill="#64748b" font-size="9" text-anchor="middle" font-weight="600">{{ item.label }}</text>
-              </g>
+            <!-- X Grid Labels -->
+            <g *ngFor="let item of rotulosGradeX">
+              <line [attr.x1]="item.x" y1="210" [attr.x2]="item.x" y2="214" stroke="#cbd5e1" stroke-width="1" />
+              <text [attr.x]="item.x" y="226" fill="#64748b" font-size="9" text-anchor="middle" font-weight="600">{{
+                item.label }}</text>
+            </g>
 
-              <!-- Curva Prevista -->
-              <path [attr.d]="caminhoSvgPrevisto" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-              <circle *ngFor="let p of pontosSvgPrevisto" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5" class="chart-dot">
-                <title>Previsto Acumulado ({{ p.label }}): {{ formatarMoeda(p.val) }}</title>
-              </circle>
+            <!-- Curva Prevista -->
+            <path [attr.d]="caminhoSvgPrevisto" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle *ngFor="let p of pontosSvgPrevisto" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#2563eb"
+              stroke="#ffffff" stroke-width="1.5" class="chart-dot">
+              <title>Previsto Acumulado ({{ p.label }}): {{ formatarMoeda(p.val) }}</title>
+            </circle>
 
-              <!-- Curva Realizada -->
-              <path [attr.d]="caminhoSvgRealizado" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-              <circle *ngFor="let p of pontosSvgRealizado" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#10b981" stroke="#ffffff" stroke-width="1.5" class="chart-dot">
-                <title>Realizado Acumulado ({{ p.label }}): {{ formatarMoeda(p.val) }}</title>
-              </circle>
-            </svg>
-            
-            <!-- Legend -->
-            <div class="chart-legend">
-              <span class="legend-item"><span class="legend-color prev-color"></span>Previsto Acumulado</span>
-              <span class="legend-item"><span class="legend-color real-color"></span>Realizado Acumulado</span>
-            </div>
+            <!-- Curva Realizada -->
+            <path [attr.d]="caminhoSvgRealizado" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle *ngFor="let p of pontosSvgRealizado" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#10b981"
+              stroke="#ffffff" stroke-width="1.5" class="chart-dot">
+              <title>Realizado Acumulado ({{ p.label }}): {{ formatarMoeda(p.val) }}</title>
+            </circle>
+          </svg>
+
+          <!-- Legend -->
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-color prev-color"></span>Previsto Acumulado</span>
+            <span class="legend-item"><span class="legend-color real-color"></span>Realizado Acumulado</span>
+          </div>
           } @else {
-            <div class="empty-state-card">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-              </svg>
-              <p>Aguardando importação da planilha para gerar o gráfico da Curva S.</p>
-            </div>
+          <div class="empty-state-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <p>Aguardando importação da planilha para gerar o gráfico da Curva S.</p>
+          </div>
           }
         </div>
       </div>
@@ -242,34 +248,39 @@
         </div>
         <div class="diary-body">
           @if (dadosExcel && dadosExcel.length > 0) {
-            <div class="form-group">
-              <label for="month-select" class="form-label">Mês de Referência</label>
-              <div class="select-wrapper">
-                <select id="month-select" class="form-control" [(ngModel)]="mesDiarioSelecionado" (change)="alterarMesDiario()">
-                  <option *ngFor="let row of dadosExcel" [value]="row.mes">{{ row.mes }}</option>
-                </select>
-              </div>
+          <div class="form-group">
+            <label for="month-select" class="form-label">Mês de Referência</label>
+            <div class="select-wrapper">
+              <select id="month-select" class="form-control" [(ngModel)]="mesDiarioSelecionado"
+                (change)="alterarMesDiario()">
+                <option *ngFor="let row of dadosExcel" [value]="row.mes">{{ row.mes }}</option>
+              </select>
             </div>
-            <div class="form-group">
-              <label for="diary-notes" class="form-label">Observações e Notas</label>
-              <textarea id="diary-notes" class="form-control text-area" rows="3" [(ngModel)]="textoNotaDiario" placeholder="Digite aqui as observações, justificativas de atrasos ou ocorrências da obra..."></textarea>
-            </div>
-            <button class="btn-save" (click)="salvarNotaDiario()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-save">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              <span>Guardar Observação</span>
-            </button>
+          </div>
+          <div class="form-group">
+            <label for="diary-notes" class="form-label">Observações e Notas</label>
+            <textarea id="diary-notes" class="form-control text-area" rows="3" [(ngModel)]="textoNotaDiario"
+              placeholder="Digite aqui as observações, justificativas de atrasos ou ocorrências da obra..."></textarea>
+          </div>
+          <button class="btn-save" (click)="salvarNotaDiario()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="feather feather-save">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Guardar Observação</span>
+          </button>
           } @else {
-            <div class="empty-state-card">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-              </svg>
-              <p>Aguardando importação da planilha para habilitar o registro de observações.</p>
-            </div>
+          <div class="empty-state-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <p>Aguardando importação da planilha para habilitar o registro de observações.</p>
+          </div>
           }
         </div>
       </div>

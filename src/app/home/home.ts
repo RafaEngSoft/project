@@ -142,7 +142,7 @@ export class homeComponent {
 
     for (let i = 0; i < this.dadosExcel.length; i++) {
       const linha = this.dadosExcel[i];
-      
+
       if (linha.valorPrevisto !== null && linha.valorPrevisto !== undefined) {
         previstoAcumulado += linha.valorPrevisto;
         valoresPrevistos.push(previstoAcumulado);
@@ -226,42 +226,6 @@ export class homeComponent {
     let mesesCorridos = 0;
     let avancoObra = 0;
 
-    for (const chave of chaves) {
-      if (chave.startsWith('!')) continue;
-      const celula = planilha[chave];
-      if (!celula || celula.v === undefined || celula.v === null) continue;
-
-      const valorTexto = String(celula.v).trim().toLowerCase();
-      const posicao = XLSX.utils.decode_cell(chave);
-
-      // Limit metadata check to the top rows (rows 1-5, which have index 0-4)
-      if (posicao.r < 5) {
-        if (valorTexto.includes('contrato') || valorTexto.includes('valor_contrato')) {
-          const proximaCelula = XLSX.utils.encode_cell({ r: posicao.r, c: posicao.c + 1 });
-          const val = planilha[proximaCelula]?.v;
-          if (val !== undefined && val !== null) {
-            valorContrato = this.converterNumeroOuNulo(val) || 0;
-          }
-        }
-
-        if (valorTexto.includes('meses') || valorTexto.includes('decorrid')) {
-          const proximaCelula = XLSX.utils.encode_cell({ r: posicao.r, c: posicao.c + 1 });
-          const val = planilha[proximaCelula]?.v;
-          if (val !== undefined && val !== null) {
-            mesesCorridos = this.converterNumeroOuNulo(val) || 0;
-          }
-        }
-
-        if (valorTexto.includes('avanço') || valorTexto.includes('avanco') || valorTexto.includes('progresso')) {
-          const proximaCelula = XLSX.utils.encode_cell({ r: posicao.r, c: posicao.c + 1 });
-          const val = planilha[proximaCelula]?.v;
-          if (val !== undefined && val !== null) {
-            avancoObra = this.converterNumeroOuNulo(val) || 0;
-          }
-        }
-      }
-    }
-
     let inicioTabelaLinha = -1;
     const indicesColunas: { [chave: string]: number } = {};
 
@@ -293,6 +257,69 @@ export class homeComponent {
       }
     }
 
+    // Busca robusta de metadados antes da tabela começar (limite de linhas)
+    const limiteLinhaMetadata = inicioTabelaLinha !== -1 ? inicioTabelaLinha : 15;
+
+    const buscarMetadado = (termos: string[]): number | null => {
+      for (const chave of chaves) {
+        if (chave.startsWith('!')) continue;
+        const celula = planilha[chave];
+        if (!celula || celula.v === undefined || celula.v === null) continue;
+
+        const texto = String(celula.v).trim().toLowerCase();
+        const corresponde = termos.some(termo => texto.includes(termo));
+
+        if (corresponde) {
+          const posicao = XLSX.utils.decode_cell(chave);
+          if (posicao.r >= limiteLinhaMetadata) continue;
+
+          // 1. Tentar extrair do próprio texto da célula (ex: "Valor do Contrato: R$ 120.000,00" ou "Avanço da Obra: 75%")
+          const numProprio = this.extrairNumeroDoTexto(String(celula.v));
+
+          // Listar células candidatas ao redor (direita, duas à direita, baixo, diagonal)
+          const candidatas = [
+            { r: posicao.r, c: posicao.c + 1 }, // Direita
+            { r: posicao.r, c: posicao.c + 2 }, // Duas à direita
+            { r: posicao.r + 1, c: posicao.c }, // Baixo
+            { r: posicao.r + 1, c: posicao.c + 1 } // Diagonal
+          ];
+
+          for (const cand of candidatas) {
+            const ref = XLSX.utils.encode_cell(cand);
+            const celCand = planilha[ref];
+            if (celCand && celCand.v !== undefined && celCand.v !== null) {
+              const num = this.converterNumeroOuNulo(celCand.v);
+              if (num !== null && num !== 0) {
+                return num;
+              }
+            }
+          }
+
+          // Se não encontrou nas vizinhas, tenta extrair do próprio texto
+          if (numProprio !== null) {
+            const ehContrato = termos.includes('contrato');
+            // Se for contrato, só aceita se for grande ou contiver símbolo monetário, para evitar falsos positivos como ID de contrato
+            if (!ehContrato || String(celula.v).includes('R$') || String(celula.v).includes('$') || numProprio > 100) {
+              return numProprio;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    valorContrato = buscarMetadado(['contrato', 'valor_contrato', 'valor contratado']) || 0;
+    mesesCorridos = buscarMetadado(['meses', 'decorrid', 'corridos', 'prazo']) || 0;
+
+    let avancoLido = buscarMetadado(['avanço', 'avanco', 'progresso', 'físico', 'fisico']);
+    if (avancoLido !== null) {
+      if (avancoLido > 1.0) {
+        avancoObra = avancoLido / 100.0;
+      } else {
+        avancoObra = avancoLido;
+      }
+    }
+
     const linhas: any[] = [];
     if (inicioTabelaLinha !== -1) {
       for (let r = inicioTabelaLinha + 1; r < inicioTabelaLinha + 25; r++) {
@@ -309,14 +336,14 @@ export class homeComponent {
         const valorMes = planilha[chaveMes]?.v;
 
         if (valorMes === undefined || valorMes === null || String(valorMes).trim() === '') {
-          let linhaTemDados = false;
+          let rowHasData = false;
           for (let c = 0; c < 10; c++) {
             if (planilha[XLSX.utils.encode_cell({ r, c })]?.v !== undefined) {
-              linhaTemDados = true;
+              rowHasData = true;
               break;
             }
           }
-          if (!linhaTemDados) break;
+          if (!rowHasData) break;
         }
 
         if (valorMes && (String(valorMes).toLowerCase().includes('total') || String(valorMes).toLowerCase().includes('geral'))) {
@@ -331,12 +358,16 @@ export class homeComponent {
 
             if (headerName === 'Valor_Realizado') {
               if ((k.includes('realizado') || k.includes('medido')) && !k.includes('contrato') && !k.includes('%')) {
-                if (val !== undefined && val !== null) return val;
+                if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
+                  if (val !== undefined && val !== null) return val;
+                }
               }
             }
             if (headerName === 'Valor_Previsto') {
               if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && !k.includes('contrato') && !k.includes('%')) {
-                if (val !== undefined && val !== null) return val;
+                if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
+                  if (val !== undefined && val !== null) return val;
+                }
               }
             }
             if (headerName === 'Desvio_Valor') {
@@ -354,12 +385,16 @@ export class homeComponent {
             }
             if (headerName === 'Realizado_Porc_Contrato') {
               if ((k.includes('realizado') || k.includes('medido')) && (k.includes('contrato') || k.includes('%'))) {
-                if (val !== undefined && val !== null) return val;
+                if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
+                  if (val !== undefined && val !== null) return val;
+                }
               }
             }
             if (headerName === 'Previsto_Porc_Contrato') {
               if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && (k.includes('contrato') || k.includes('%'))) {
-                if (val !== undefined && val !== null) return val;
+                if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
+                  if (val !== undefined && val !== null) return val;
+                }
               }
             }
             if (headerName === 'Desvio_Porc_Contrato') {
@@ -374,9 +409,9 @@ export class homeComponent {
         };
 
         const mes = valorMes ? String(valorMes).trim() : '';
-        const valorRealizado = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Realizado'));
-        const valorPrevisto = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Previsto'));
-        
+        let valorRealizado = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Realizado'));
+        let valorPrevisto = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Previsto'));
+
         let desvioValor = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_Valor'));
         let desvioVSPrevisto = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_vs_Previsto'));
         let realizadoPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Realizado_Porc_Contrato'));
@@ -385,7 +420,27 @@ export class homeComponent {
 
         if (mes || valorRealizado !== null || valorPrevisto !== null) {
           const divisorContrato = valorContrato || 1;
-          
+
+          // Normalizar porcentagens se vieram como inteiros do Excel (ex: 8.33 ao invés de 0.0833)
+          if (previstoPorcContrato !== null && previstoPorcContrato > 1.0) {
+            previstoPorcContrato = previstoPorcContrato / 100.0;
+          }
+          if (realizadoPorcContrato !== null && realizadoPorcContrato > 1.0) {
+            realizadoPorcContrato = realizadoPorcContrato / 100.0;
+          }
+          if (desvioPorcContrato !== null && Math.abs(desvioPorcContrato) > 1.0) {
+            desvioPorcContrato = desvioPorcContrato / 100.0;
+          }
+
+          // Preenchimento recíproco de valores baseado nas porcentagens do contrato
+          if (valorPrevisto === null && previstoPorcContrato !== null && valorContrato > 0) {
+            valorPrevisto = previstoPorcContrato * valorContrato;
+          }
+          if (valorRealizado === null && realizadoPorcContrato !== null && valorContrato > 0) {
+            valorRealizado = realizadoPorcContrato * valorContrato;
+          }
+
+          // Preenchimento de porcentagens baseado nos valores se estiverem vazios
           if (valorPrevisto !== null && previstoPorcContrato === null) {
             previstoPorcContrato = valorPrevisto / divisorContrato;
           }
@@ -427,6 +482,15 @@ export class homeComponent {
       avancoObra,
       linhas,
     };
+  }
+
+  extrairNumeroDoTexto(texto: string): number | null {
+    if (!texto) return null;
+    const match = texto.replace(/R\$\s*/gi, '').trim().match(/[-+]?\s*\d+([\d.,]*)?/);
+    if (match) {
+      return this.converterNumeroOuNulo(match[0]);
+    }
+    return null;
   }
 
   converterNumeroOuNulo(val: any): number | null {
