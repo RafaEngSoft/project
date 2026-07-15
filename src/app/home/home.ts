@@ -2,25 +2,33 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
+import { ChangeDetectorRef } from '@angular/core';
+import { NgZone } from '@angular/core';
+
+
 
 @Component({
   selector: 'app-home',
   imports: [CommonModule, FormsModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
+
 })
 export class homeComponent {
   valorContrato = 0;
   mesesCorridos = 0;
   avancoObra = 0;
+  saldoContratual = 0;
+
+
 
   dadosExcel: any[] = [];
 
-  totalRealizado = 0;
+  totalMedido = 0;
   totalPrevisto = 0;
   totalDesvio = 0;
   totalDesvioPercentual = 0;
-  totalRealizadoPorcContrato = 0;
+  totalMedidoPorcContrato = 0;
   totalPrevistoPorcContrato = 0;
   totalDesvioPorcContrato = 0;
 
@@ -36,45 +44,64 @@ export class homeComponent {
   linhasGradeY: { y: number; label: string }[] = [];
   rotulosGradeX: { x: number; label: string }[] = [];
 
-  constructor() {
+  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {
     this.calcularTotais();
     this.calcularDadosAcumulados();
     this.alterarMesDiario();
   }
 
   lerExcel(event: any) {
+    console.log('1. lerExcel foi acionado!', event.target.files);
+
     const arquivo = event.target.files[0];
-    if (!arquivo) return;
+    if (!arquivo) {
+      console.log('Erro: Nenhum arquivo encontrado no input.');
+      return;
+    }
 
     const leitorArquivo = new FileReader();
-    leitorArquivo.readAsArrayBuffer(arquivo);
 
     leitorArquivo.onload = () => {
-      const pastaTrabalho = XLSX.read(leitorArquivo.result, { type: 'array' });
-      const nomesPlanilhas = pastaTrabalho.SheetNames;
-      const planilha = pastaTrabalho.Sheets[nomesPlanilhas[0]];
+      console.log('2. FileReader.onload terminou de ler o arquivo do disco.');
 
-      const resultado = this.analisarPlanilhaExcel(planilha);
+      this.ngZone.run(() => {
+        const pastaTrabalho = XLSX.read(leitorArquivo.result, { type: 'array' });
+        const nomesPlanilhas = pastaTrabalho.SheetNames;
+        const planilha = pastaTrabalho.Sheets[nomesPlanilhas[0]];
 
-      if (resultado.linhas && resultado.linhas.length > 0) {
-        this.valorContrato = resultado.valorContrato || this.valorContrato;
-        this.mesesCorridos = resultado.mesesCorridos || this.mesesCorridos;
-        this.avancoObra = resultado.avancoObra || this.avancoObra;
-        this.dadosExcel = resultado.linhas;
+        const resultado = this.analisarPlanilhaExcel(planilha);
+        console.log('3. Resultado do processamento da planilha:', resultado);
 
-        if (this.dadosExcel.length > 0) {
-          const primeiroMes = this.dadosExcel[0].mes;
-          if (primeiroMes && !this.dadosExcel.find(r => r.mes === this.mesDiarioSelecionado)) {
-            this.mesDiarioSelecionado = primeiroMes;
+        if (resultado.linhas && resultado.linhas.length > 0) {
+          this.valorContrato = resultado.valorContrato || this.valorContrato;
+          this.mesesCorridos = resultado.mesesCorridos || this.mesesCorridos;
+          this.avancoObra = resultado.avancoObra || this.avancoObra;
+          this.dadosExcel = resultado.linhas;
+
+          if (this.dadosExcel.length > 0) {
+            const primeiroMes = this.dadosExcel[0].mes;
+            if (primeiroMes && !this.dadosExcel.find(r => r.mes === this.mesDiarioSelecionado)) {
+              this.mesDiarioSelecionado = primeiroMes;
+            }
           }
-        }
 
-        this.calcularTotais();
-        this.calcularDadosAcumulados();
-        this.alterarMesDiario();
-      }
+          this.calcularTotais();
+          this.calcularDadosAcumulados();
+          this.alterarMesDiario();
+          console.log('4. Estados atualizados e cálculos concluídos!');
+          this.cdr.detectChanges();
+        } else {
+          console.log('Erro: Nenhuma linha de dados válida foi extraída da planilha.');
+        }
+      });
+      event.target.value = '';
     };
+
+    leitorArquivo.readAsArrayBuffer(arquivo);
   }
+
+
+
 
   alterarMesDiario() {
     this.textoNotaDiario = this.notasDiario[this.mesDiarioSelecionado] || '';
@@ -87,30 +114,33 @@ export class homeComponent {
   }
 
   calcularTotais() {
-    this.totalRealizado = 0;
+    this.totalMedido = 0;
     this.totalPrevisto = 0;
 
     if (!this.dadosExcel || this.dadosExcel.length === 0) {
       this.totalDesvio = 0;
       this.totalDesvioPercentual = 0;
-      this.totalRealizadoPorcContrato = 0;
+      this.totalMedidoPorcContrato = 0;
       this.totalPrevistoPorcContrato = 0;
       this.totalDesvioPorcContrato = 0;
+      this.saldoContratual = 0;
       return;
     }
 
     for (const linha of this.dadosExcel) {
-      this.totalRealizado += linha.valorRealizado || 0;
+      this.totalMedido += linha.valorMedido || 0;
       this.totalPrevisto += linha.valorPrevisto || 0;
     }
 
-    this.totalDesvio = this.totalRealizado - this.totalPrevisto;
+    this.totalDesvio = this.totalMedido - this.totalPrevisto;
     this.totalDesvioPercentual = this.totalPrevisto > 0 ? (this.totalDesvio / this.totalPrevisto) : 0;
 
     const contrato = this.valorContrato || 1;
-    this.totalRealizadoPorcContrato = this.totalRealizado / contrato;
+    this.totalMedidoPorcContrato = this.totalMedido / contrato;
     this.totalPrevistoPorcContrato = this.totalPrevisto / contrato;
     this.totalDesvioPorcContrato = this.totalDesvio / contrato;
+
+    this.saldoContratual = Math.max(0, this.valorContrato - this.totalMedido);
   }
 
   calcularDadosAcumulados() {
@@ -132,7 +162,7 @@ export class homeComponent {
 
     let ultimoIndiceRealizado = -1;
     for (let i = 0; i < this.dadosExcel.length; i++) {
-      if (this.dadosExcel[i].valorRealizado !== null && this.dadosExcel[i].valorRealizado !== undefined) {
+      if (this.dadosExcel[i].valorMedido !== null && this.dadosExcel[i].valorMedido !== undefined) {
         ultimoIndiceRealizado = i;
       }
     }
@@ -150,8 +180,8 @@ export class homeComponent {
         valoresPrevistos.push(previstoAcumulado);
       }
 
-      if (i <= ultimoIndiceRealizado && linha.valorRealizado !== null && linha.valorRealizado !== undefined) {
-        realizadoAcumulado += linha.valorRealizado;
+      if (i <= ultimoIndiceRealizado && linha.valorMedido !== null && linha.valorMedido !== undefined) {
+        realizadoAcumulado += linha.valorMedido;
         valoresRealizados.push(realizadoAcumulado);
       }
     }
@@ -225,6 +255,8 @@ export class homeComponent {
     let valorContrato = 0;
     let mesesCorridos = 0;
     let avancoObra = 0;
+    let saldoContratual = 0;
+
 
     let inicioTabelaLinha = -1;
     const indicesColunas: { [chave: string]: number } = {};
@@ -409,7 +441,7 @@ export class homeComponent {
         };
 
         const mes = valorMes ? String(valorMes).trim() : '';
-        let valorRealizado = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Realizado'));
+        let valorMedido = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Realizado'));
         let valorPrevisto = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Previsto'));
 
         let desvioValor = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_Valor'));
@@ -418,7 +450,7 @@ export class homeComponent {
         let previstoPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Previsto_Porc_Contrato'));
         let desvioPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_Porc_Contrato'));
 
-        if (mes || valorRealizado !== null || valorPrevisto !== null) {
+        if (mes || valorMedido !== null || valorPrevisto !== null) {
           const divisorContrato = valorContrato || 1;
 
           // Normalizar porcentagens se vieram como inteiros do Excel (ex: 8.33 ao invés de 0.0833)
@@ -436,8 +468,8 @@ export class homeComponent {
           if (valorPrevisto === null && previstoPorcContrato !== null && valorContrato > 0) {
             valorPrevisto = previstoPorcContrato * valorContrato;
           }
-          if (valorRealizado === null && realizadoPorcContrato !== null && valorContrato > 0) {
-            valorRealizado = realizadoPorcContrato * valorContrato;
+          if (valorMedido === null && realizadoPorcContrato !== null && valorContrato > 0) {
+            valorMedido = realizadoPorcContrato * valorContrato;
           }
 
           // Preenchimento de porcentagens baseado nos valores se estiverem vazios
@@ -445,13 +477,13 @@ export class homeComponent {
             previstoPorcContrato = valorPrevisto / divisorContrato;
           }
 
-          if (valorRealizado !== null) {
+          if (valorMedido !== null) {
             if (realizadoPorcContrato === null) {
-              realizadoPorcContrato = valorRealizado / divisorContrato;
+              realizadoPorcContrato = valorMedido / divisorContrato;
             }
             if (valorPrevisto !== null) {
               if (desvioValor === null) {
-                desvioValor = valorRealizado - valorPrevisto;
+                desvioValor = valorMedido - valorPrevisto;
               }
               if (desvioVSPrevisto === null) {
                 desvioVSPrevisto = valorPrevisto !== 0 ? (desvioValor / valorPrevisto) : 0;
@@ -464,7 +496,7 @@ export class homeComponent {
 
           linhas.push({
             mes,
-            valorRealizado,
+            valorMedido,
             valorPrevisto,
             desvioValor,
             desvioVSPrevisto,
@@ -480,6 +512,7 @@ export class homeComponent {
       valorContrato,
       mesesCorridos,
       avancoObra,
+      saldoContratual,
       linhas,
     };
   }
@@ -523,5 +556,10 @@ export class homeComponent {
       num = num / 100.0;
     }
     return num;
-  }
+
+
+
+
+  };
 }
+

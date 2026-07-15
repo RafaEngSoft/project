@@ -39,6 +39,27 @@
       </div>
     </div>
 
+    <!-- Card Saldo Contratual -->
+    <div class="card card-saldo-contratual">
+      <div class="card-icon saldo-contratual-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m16 16 3-8 3 8c-.87.65-2.24 1-3 1s-2.13-.35-3-1Z" />
+          <path d="m2 16 3-8 3 8c-.87.65-2.24 1-3 1s-2.13-.35-3-1Z" />
+          <path d="M7 21h10" />
+          <path d="M12 3v18" />
+          <path d="M3 7h18" />
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Saldo Contratual</span>
+        <h3 class="card-value">{{ saldoContratual | currency:'BRL':'symbol':'1.2-2' }}</h3>
+        <span class="card-subtext">Saldo atual do contrato</span>
+      </div>
+    </div>
+
+
+
     <!-- Card Meses Corridos -->
     <div class="card card-meses">
       <div class="card-icon meses-corridos-icon">
@@ -67,7 +88,7 @@
         </svg>
       </div>
       <div class="card-content">
-        <span class="card-label">Avanço da Obra</span>
+        <span class="card-label">Avanço Financeiro</span>
         <h3 class="card-value">{{ avancoObra | percent:'1.1-1' }}</h3>
         <div class="progress-bar-container">
           <div class="progress-bar-fill" [style.width]="(avancoObra * 100) + '%'"></div>
@@ -90,11 +111,11 @@
             <thead>
               <tr>
                 <th>Mês</th>
-                <th>Valor Realizado</th>
+                <th>Valor Medido</th>
                 <th>Valor Previsto</th>
                 <th>Desvio Valor</th>
                 <th>Desvio / Previsto</th>
-                <th>Realizado (% Contrato)</th>
+                <th>Medido(% Contrato)</th>
                 <th>Previsto (% Contrato)</th>
                 <th>Desvio (%)</th>
               </tr>
@@ -110,12 +131,12 @@
               }
 
               <tr *ngFor="let data of dadosExcel"
-                [ngClass]="{'inactive-row': data.valorRealizado === null && data.valorPrevisto === null}">
+                [ngClass]="{'inactive-row': data.valorMedido === null && data.valorPrevisto === null}">
                 <td class="col-month"><strong>{{ data.mes }}</strong></td>
 
-                <!-- Valor Realizado -->
+                <!-- Valor Medido -->
                 <td>
-                  {{ data.valorRealizado !== null ? (data.valorRealizado | currency:'BRL':'symbol':'1.2-2') : '-' }}
+                  {{ data.valorMedido !== null ? (data.valorMedido | currency:'BRL':'symbol':'1.2-2') : '-' }}
                 </td>
 
                 <!-- Valor Previsto -->
@@ -156,7 +177,7 @@
               @if (dadosExcel && dadosExcel.length > 0) {
               <tr class="total-row">
                 <td><strong>TOTAL GERAL</strong></td>
-                <td>{{ totalRealizado | currency:'BRL':'symbol':'1.2-2' }}</td>
+                <td>{{ totalMedido| currency:'BRL':'symbol':'1.2-2' }}</td>
                 <td>{{ totalPrevisto | currency:'BRL':'symbol':'1.2-2' }}</td>
                 <td [ngClass]="{'text-negative': totalDesvio < 0, 'text-positive': totalDesvio > 0}">
                   @if (totalDesvio < 0) { ({{ -totalDesvio | currency:'BRL':'symbol':'1.2-2' }}) } @else { {{
@@ -165,7 +186,7 @@
                   [ngClass]="{'text-negative': totalDesvioPercentual < 0, 'text-positive': totalDesvioPercentual > 0}">
                   {{ totalDesvioPercentual | percent:'1.1-1' }}
                 </td>
-                <td>{{ totalRealizadoPorcContrato | percent:'1.1-1' }}</td>
+                <td>{{ totalMedidoPorcContrato | percent:'1.1-1' }}</td>
                 <td>{{ totalPrevistoPorcContrato | percent:'1.1-1' }}</td>
                 <td
                   [ngClass]="{'text-negative': totalDesvioPorcContrato < 0, 'text-positive': totalDesvioPorcContrato > 0}">

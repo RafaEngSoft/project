@@ -114,6 +114,11 @@
   color: #7c3aed;
 }
 
+.saldo-contratual-icon {
+  background-color: #fff7ed;
+  color: #ea580c;
+}
+
 .card-content {
   flex-grow: 1;
 }
