@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
-import { ChangeDetectorRef } from '@angular/core';
-import { NgZone } from '@angular/core';
+import { ChangeDetectorRef, NgZone } from '@angular/core';
+
 
 
 
