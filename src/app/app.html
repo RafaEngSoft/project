@@ -1,1 +1,6 @@
-<router-outlet></router-outlet>
+<div class="app-layout">
+    <app-menu [ismenu]="ismenu()" (changeMenu)="changeMenu($event)"></app-menu>
+    <main class="main-content">
+        <router-outlet></router-outlet>
+    </main>
+</div>

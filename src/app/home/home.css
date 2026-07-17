@@ -19,6 +19,15 @@
   flex-wrap: wrap;
 }
 
+.header-spacer {
+  flex: 1;
+  display: block;
+}
+
+.header-info {
+  text-align: center;
+}
+
 .header-info h1 {
   margin: 0;
   font-size: 1.8rem;
@@ -31,6 +40,12 @@
   margin: 0.35rem 0 0 0;
   font-size: 0.95rem;
   color: #64748b;
+}
+
+.header-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Customized file import button */
@@ -428,6 +443,14 @@ tr:hover td {
     margin: 1rem auto;
   }
   
+  .header-spacer {
+    display: none;
+  }
+
+  .header-info {
+    text-align: left;
+  }
+
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
@@ -436,6 +459,7 @@ tr:hover td {
   
   .header-actions {
     width: 100%;
+    justify-content: flex-start;
   }
   
   .btn-import {

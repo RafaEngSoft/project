@@ -1,1 +1,35 @@
-<p>menu works!</p>
+<div class="sidenav" [class]="ismenu() ? 'sidenav-colapse' : ''">
+    <div class="logo_container">
+        <button class="logo" (click)="toggleCollaps()">
+            <i class="fa fa-bars"></i>
+        </button>
+        @if (!ismenu()) {
+            <div class="logo_text">Menu</div>
+            <button class="btn_close" (click)="closeSidenav()">
+                <i class="fa fa-times"></i>
+            </button>
+        }
+    </div>
+    <div class="sidebar-nav">
+        @for (item of items; track item) {
+            <li class="sidenav-nav-item">
+                @if (item.click) {
+                    <a class="sidenav-nav-link" (click)="onItemClick(item)" style="cursor: pointer;">
+                        <i class="sidenav-nav-link-icon" [class]="item.icon"></i>
+                        @if (!ismenu()) {
+                            <span class="sidenav-nav-link-text">{{ item.label }}</span>
+                        }
+                    </a>
+                } @else {
+                    <a class="sidenav-nav-link" [routerLink]="item.routerLink" routerLinkActive="active"
+                        [routerLinkActiveOptions]="{exact: true}">
+                        <i class="sidenav-nav-link-icon" [class]="item.icon"></i>
+                        @if (!ismenu()) {
+                            <span class="sidenav-nav-link-text">{{ item.label }}</span>
+                        }
+                    </a>
+                }
+            </li>
+        }
+    </div>
+</div>
