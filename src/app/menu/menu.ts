@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ModalService } from '../modal.service';
 
 export interface MenuItem {
   routerLink?: string;
@@ -20,16 +21,23 @@ export class Menu {
 
   items: MenuItem[] = [
     {
-      click: "fisico",
+      routerLink: "fisico",
       icon: "fa fa-person-skating",
       label: "Físico",
+    },
+    {
+      click: "curvaS",
+      icon: "fa fa-chart-line",
+      label: "Curva S",
     }
   ];
 
+  constructor(private modalService: ModalService) {}
+
   onItemClick(item: MenuItem) {
-    if (item.click) {
+    if (item.click === 'curvaS') {
       console.log('Abrir modal:', item.click);
-      // Aqui você poderá adicionar a lógica para abrir seu modal
+      this.modalService.showSCurveModal.set(true);
     }
   }
 

@@ -75,7 +75,8 @@
   color: #0f172a;
 }
 
-.sidebar-nav, .sidenav-nav {
+.sidebar-nav,
+.sidenav-nav {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -138,7 +139,7 @@
   color: inherit;
 }
 
-/* When collapsed, center the link items */
+
 .sidenav-colapse .logo_container {
   justify-content: center;
   padding-bottom: 1rem;

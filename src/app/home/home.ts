@@ -3,9 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
 import { ChangeDetectorRef, NgZone } from '@angular/core';
-
-
-
+import { ModalService } from '../modal.service';
 
 @Component({
   selector: 'app-home',
@@ -34,6 +32,7 @@ export class homeComponent {
 
   mesDiarioSelecionado = '';
   textoNotaDiario = '';
+  notaSalvaMensagem = false;
 
   notasDiario: { [mes: string]: string } = {};
 
@@ -44,10 +43,22 @@ export class homeComponent {
   linhasGradeY: { y: number; label: string }[] = [];
   rotulosGradeX: { x: number; label: string }[] = [];
 
-  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {
+  constructor(
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
+    public modalService: ModalService
+  ) {
     this.calcularTotais();
     this.calcularDadosAcumulados();
     this.alterarMesDiario();
+  }
+
+  abrirCurvaS() {
+    this.modalService.showSCurveModal.set(true);
+  }
+
+  closeSCurveModal() {
+    this.modalService.showSCurveModal.set(false);
   }
 
   lerExcel(event: any) {
@@ -110,7 +121,20 @@ export class homeComponent {
   salvarNotaDiario() {
     if (this.mesDiarioSelecionado) {
       this.notasDiario[this.mesDiarioSelecionado] = this.textoNotaDiario;
+      this.notaSalvaMensagem = true;
+      setTimeout(() => {
+        this.notaSalvaMensagem = false;
+      }, 3000);
     }
+  }
+
+  obterMesesComNotas(): string[] {
+    return Object.keys(this.notasDiario).filter(mes => this.notasDiario[mes] && this.notasDiario[mes].trim() !== '');
+  }
+
+  selecionarMesDiario(mes: string) {
+    this.mesDiarioSelecionado = mes;
+    this.alterarMesDiario();
   }
 
   calcularTotais() {
