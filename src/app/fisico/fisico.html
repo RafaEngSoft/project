@@ -1,0 +1,385 @@
+<div class="product-dashboard">
+  <!-- Top bar -->
+  <div class="dashboard-header">
+    <div class="header-info">
+      <h1>Acompanhamento Físico da Obra</h1>
+      <p>Acompanhamento de prazos, avanço físico e curva S física</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-import btn-chart-trigger" (click)="abrirCurvaS()" style="margin-right: 0.5rem; background-color: #3b82f6;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        <span>Ver Curva S</span>
+      </button>
+      <label class="btn-import">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"></polyline>
+          <line x1="12" y1="12" x2="12" y2="21"></line>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+        </svg>
+        <span>Importar Planilha</span>
+        <input type="file" (change)="lerExcel($event)" accept=".xlsx, .xls" style="display: none;" />
+      </label>
+    </div>
+  </div>
+
+  <!-- Summary KPI Cards Section -->
+  <div class="dashboard-cards">
+    <!-- Card Duração Prevista -->
+    <div class="card card-prevista">
+      <div class="card-icon duracao-prevista-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Duração Prevista</span>
+        <h3 class="card-value">
+          {{ duracaoLinhaBase !== null ? duracaoLinhaBase : '-' }} 
+          <span class="unit-text" *ngIf="duracaoLinhaBase !== null">dias</span>
+        </h3>
+        <span class="card-subtext">Duração Planejada / Linha de Base</span>
+      </div>
+    </div>
+
+    <!-- Card Duração Atualizada -->
+    <div class="card card-atualizada">
+      <div class="card-icon duracao-atual-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Duração Real/Atual</span>
+        <h3 class="card-value">
+          {{ duracaoRealAtualizada !== null ? duracaoRealAtualizada : '-' }}
+          <span class="unit-text" *ngIf="duracaoRealAtualizada !== null">dias</span>
+        </h3>
+        <span class="card-subtext" [ngClass]="{'text-negative': variacaoTermino && variacaoTermino > 0, 'text-positive': variacaoTermino === 0}">
+          Desvio de término: {{ variacaoTermino !== null ? variacaoTermino : '-' }} dias
+        </span>
+      </div>
+    </div>
+
+    <!-- Card Tempo Transcorrido -->
+    <div class="card card-transcorrido">
+      <div class="card-icon tempo-transcorrido-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Tempo Transcorrido</span>
+        <h3 class="card-value">
+          {{ tempoTranscorrido !== null ? tempoTranscorrido : '-' }}
+          <span class="unit-text" *ngIf="tempoTranscorrido !== null">dias</span>
+        </h3>
+        <span class="card-subtext" *ngIf="tempoTranscorrido !== null && duracaoLinhaBase">
+          Equivale a {{ (tempoTranscorrido / duracaoLinhaBase) | percent:'1.1-1' }} da obra
+        </span>
+        <span class="card-subtext" *ngIf="tempoTranscorrido === null">Sem dados de prazo</span>
+      </div>
+    </div>
+
+    <!-- Card Avanço Físico Real -->
+    <div class="card card-avanco-real">
+      <div class="card-icon avanco-fisico-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+          <polyline points="17 6 23 6 23 12"></polyline>
+        </svg>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Avanço Físico Real</span>
+        <h3 class="card-value">
+          {{ avancoFisicoRealAcumulado !== null ? (avancoFisicoRealAcumulado | percent:'1.1-2') : '-' }}
+        </h3>
+        <div class="progress-bar-container" *ngIf="avancoFisicoRealAcumulado !== null">
+          <div class="progress-bar-fill-physical" [style.width]="(avancoFisicoRealAcumulado * 100) + '%'"></div>
+        </div>
+        <span class="card-subtext" [ngClass]="{'text-negative': desvioAvanco && desvioAvanco < 0, 'text-positive': desvioAvanco && desvioAvanco >= 0}">
+          Desvio: {{ desvioAvanco !== null ? (desvioAvanco | percent:'1.1-2') : '-' }} vs Planejado ({{ avancoFisicoEsperado | percent:'1.1-2' }})
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dates and Milestones Info Row -->
+  <div class="section-card dates-panel" *ngIf="dataInicioObra || dataStatusMedicao">
+    <div class="dates-grid">
+      <div class="date-item">
+        <span class="date-label">Início da Obra</span>
+        <span class="date-val">{{ formatarData(dataInicioObra) }}</span>
+      </div>
+      <div class="date-item">
+        <span class="date-label">Última Medição</span>
+        <span class="date-val">{{ formatarData(dataStatusMedicao) }}</span>
+      </div>
+      <div class="date-item">
+        <span class="date-label">Término Previsto</span>
+        <span class="date-val">{{ formatarData(dataTerminoLinhaBase) }}</span>
+      </div>
+      <div class="date-item">
+        <span class="date-label">Término Atualizado</span>
+        <span class="date-val">{{ formatarData(dataTerminoAtual) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-Width Monthly Table Section -->
+  <div class="section-card table-section">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <h2>Avanço Físico Planejado vs Avanço Real</h2>
+        <span class="section-subtitle">Acompanhamento do avanço físico acumulado mensalmente e desvios de prazo</span>
+      </div>
+      <span class="badge-count" *ngIf="dadosExcel && dadosExcel.length > 0">{{ dadosExcel.length }} meses importados</span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Data Referência</th>
+            <th>Avanço Planejado Acumulado</th>
+            <th>Avanço Real Acumulado</th>
+            <th>Desvio de Avanço</th>
+            <th>Status do Avanço</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="!dadosExcel || dadosExcel.length === 0">
+            <td colspan="6">
+              <div class="empty-state-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                  stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <p>Nenhum dado importado. Clique em "Importar Planilha" acima para carregar o avanço físico da obra.</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngFor="let data of dadosExcel"
+            [ngClass]="{'inactive-row': data.avancoPlanejado === null && data.avancoReal === null}">
+            <td class="col-month"><strong>{{ data.mes }}</strong></td>
+            <td>{{ formatarData(data.dataRef) }}</td>
+            
+            <!-- Avanço Planejado Acumulado -->
+            <td>
+              {{ data.avancoPlanejado !== null ? (data.avancoPlanejado | percent:'1.1-2') : '-' }}
+            </td>
+
+            <!-- Avanço Real Acumulado -->
+            <td>
+              {{ data.avancoReal !== null ? (data.avancoReal | percent:'1.1-2') : '-' }}
+            </td>
+
+            <!-- Desvio de Avanço -->
+            <td>
+              @if (data.desvio !== null) {
+              <span class="status-pill"
+                [ngClass]="{'pill-negative': data.desvio < 0, 'pill-positive': data.desvio >= 0}">
+                {{ data.desvio | percent:'1.1-2' }}
+              </span>
+              } @else { - }
+            </td>
+
+            <!-- Status do Avanço -->
+            <td>
+              @if (data.desvio !== null) {
+                <span class="status-label" [ngClass]="{'status-late': data.desvio < -0.05, 'status-ontrack': data.desvio >= -0.05 && data.desvio <= 0.02, 'status-ahead': data.desvio > 0.02}">
+                  {{ data.desvio < -0.05 ? 'Atrasado' : (data.desvio > 0.02 ? 'Adiantado' : 'No Prazo') }}
+                </span>
+              } @else { - }
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Diary & Notes Section Grid -->
+  <div class="diary-section-wrapper">
+    <div class="diary-grid">
+      <!-- Left Card: Form to edit/save note -->
+      <div class="section-card diary-card">
+        <div class="section-header">
+          <h2>Diário de Prazos e Avanço</h2>
+          <span class="section-subtitle">Registre ocorrências em campo, chuvas ou atrasos de insumos</span>
+        </div>
+
+        <div class="diary-body">
+          <div *ngIf="dadosExcel && dadosExcel.length > 0; else noNotesExcel">
+            <div class="form-group">
+              <label for="mes-diario" class="form-label">Mês de Referência</label>
+              <select id="mes-diario" class="form-control" [(ngModel)]="mesDiarioSelecionado"
+                (change)="alterarMesDiario()">
+                <option *ngFor="let r of dadosExcel" [value]="r.mes">{{ r.mes }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="diary-notes" class="form-label">Anotações do Cronograma</label>
+              <textarea id="diary-notes" class="form-control text-area" rows="4" [(ngModel)]="textoNotaDiario"
+                placeholder="Exemplo: Atraso de 3 dias devido a fortes chuvas; falta de cimento na segunda semana..."></textarea>
+            </div>
+
+            <div class="diary-actions">
+              <button class="btn-save" (click)="salvarNotaDiario()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>Salvar Registro de Campo</span>
+              </button>
+
+              <span class="toast-success" *ngIf="notaSalvaMensagem">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Salvo com sucesso!
+              </span>
+            </div>
+          </div>
+          <ng-template #noNotesExcel>
+            <div class="empty-state-card">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+              <p>Importe uma planilha Excel para registrar anotações no cronograma da obra.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Right Card: Saved Notes Summary / History -->
+      <div class="section-card history-card">
+        <div class="section-header">
+          <h2>Histórico de Ocorrências</h2>
+          <span class="section-subtitle">Registros salvos para acompanhamento físico</span>
+        </div>
+
+        <div class="history-body">
+          <div *ngIf="obterMesesComNotas().length > 0; else noSavedNotes">
+            <div class="notes-list">
+              <div *ngFor="let mes of obterMesesComNotas()" class="note-item" (click)="selecionarMesDiario(mes)"
+                [class.selected]="mes === mesDiarioSelecionado">
+                <div class="note-item-header">
+                  <span class="note-month-badge">{{ mes }}</span>
+                  <span class="note-edit-hint">Clique para editar</span>
+                </div>
+                <p class="note-item-text">{{ notasDiario[mes] }}</p>
+              </div>
+            </div>
+          </div>
+          <ng-template #noSavedNotes>
+            <div class="empty-state-card">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <p>Nenhuma ocorrência registrada. Use o painel ao lado para guardar anotações.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Curva S -->
+<div class="modal-overlay" *ngIf="modalService.showSCurveModal()" (click)="closeSCurveModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-container">
+        <h2>Curva S de Avanço Físico</h2>
+        <span class="modal-subtitle">Progresso Físico Planejado vs Realizado Acumulado (%)</span>
+      </div>
+      <button class="btn-close-modal" (click)="closeSCurveModal()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="chart-container">
+        <div *ngIf="dadosExcel && dadosExcel.length > 0; else noChartExcel">
+          <svg viewBox="0 0 600 240" width="100%" height="100%">
+            <!-- Grid Lines -->
+            <g *ngFor="let grid of linhasGradeY">
+              <line x1="85" [attr.y1]="grid.y" x2="570" [attr.y2]="grid.y" stroke="#f1f5f9" stroke-width="1" />
+              <text x="75" [attr.y]="grid.y + 3" fill="#94a3b8" font-size="8.5" text-anchor="end" font-weight="500">{{
+                grid.label }}</text>
+            </g>
+
+            <!-- X Grid Labels -->
+            <g *ngFor="let item of rotulosGradeX">
+              <line [attr.x1]="item.x" y1="210" [attr.x2]="item.x" y2="214" stroke="#cbd5e1" stroke-width="1" />
+              <text [attr.x]="item.x" y="226" fill="#64748b" font-size="9" text-anchor="middle" font-weight="600">{{
+                item.label }}</text>
+            </g>
+
+            <!-- Curva Prevista (Avanço Planejado Acumulado) -->
+            <path [attr.d]="caminhoSvgPrevisto" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle *ngFor="let p of pontosSvgPrevisto" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#2563eb"
+              stroke="#ffffff" stroke-width="1.5" class="chart-dot">
+              <title>Planejado Acumulado ({{ p.label }}): {{ p.val | percent:'1.1-2' }}</title>
+            </circle>
+
+            <!-- Curva Realizada (Avanço Real Acumulado) -->
+            <path [attr.d]="caminhoSvgRealizado" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle *ngFor="let p of pontosSvgRealizado" [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" fill="#10b981"
+              stroke="#ffffff" stroke-width="1.5" class="chart-dot">
+              <title>Real Acumulado ({{ p.label }}): {{ p.val | percent:'1.1-2' }}</title>
+            </circle>
+          </svg>
+
+          <!-- Legend -->
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-color prev-color"></span>Avanço Planejado Acumulado</span>
+            <span class="legend-item"><span class="legend-color real-color"></span>Avanço Real Acumulado</span>
+          </div>
+        </div>
+        <ng-template #noChartExcel>
+          <div class="empty-state-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+              stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <p>Aguardando importação da planilha para gerar o gráfico da Curva S física.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

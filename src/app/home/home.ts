@@ -29,6 +29,9 @@ export class homeComponent {
   totalMedidoPorcContrato = 0;
   totalPrevistoPorcContrato = 0;
   totalDesvioPorcContrato = 0;
+  totalRealizadoAcumulado = 0;
+  totalPrevistoAcumulado = 0;
+  totalDesvioAcumulado = 0;
 
   mesDiarioSelecionado = '';
   textoNotaDiario = '';
@@ -165,6 +168,20 @@ export class homeComponent {
     this.totalDesvioPorcContrato = this.totalDesvio / contrato;
 
     this.saldoContratual = Math.max(0, this.valorContrato - this.totalMedido);
+
+    let lastRealAcum = 0;
+    let lastPrevAcum = 0;
+    for (const linha of this.dadosExcel) {
+      if (linha.realizadoAcumulado !== null && linha.realizadoAcumulado !== undefined) {
+        lastRealAcum = linha.realizadoAcumulado;
+      }
+      if (linha.previstoAcumulado !== null && linha.previstoAcumulado !== undefined) {
+        lastPrevAcum = linha.previstoAcumulado;
+      }
+    }
+    this.totalRealizadoAcumulado = lastRealAcum;
+    this.totalPrevistoAcumulado = lastPrevAcum;
+    this.totalDesvioAcumulado = this.totalRealizadoAcumulado - this.totalPrevistoAcumulado;
   }
 
   calcularDadosAcumulados() {
@@ -286,20 +303,26 @@ export class homeComponent {
     const indicesColunas: { [chave: string]: number } = {};
 
     for (let r = 0; r < 30; r++) {
-      let ehLinhaCabecalho = false;
+      let temMes = false;
+      let temPrevistoOuRealizado = false;
+      let countHeaders = 0;
+
       for (let c = 0; c < 15; c++) {
         const chaveCelula = XLSX.utils.encode_cell({ r, c });
         const celula = planilha[chaveCelula];
         if (celula && celula.v !== undefined && celula.v !== null) {
           const val = String(celula.v).trim().toLowerCase();
-          if (val === 'mês' || val === 'mes' || val === 'valor_realizado' || val.includes('previsto') || val.includes('realizado')) {
-            ehLinhaCabecalho = true;
-            break;
+          if (val === 'mês' || val === 'mes' || val === 'mês/ano' || val === 'mes/ano') {
+            temMes = true;
           }
+          if (val.includes('previsto') || val.includes('realizado') || val.includes('medido') || val.includes('planejado') || val.includes('desvio')) {
+            temPrevistoOuRealizado = true;
+          }
+          countHeaders++;
         }
       }
 
-      if (ehLinhaCabecalho) {
+      if (temMes && temPrevistoOuRealizado && countHeaders >= 4) {
         inicioTabelaLinha = r;
         for (let c = 0; c < 15; c++) {
           const chaveCelula = XLSX.utils.encode_cell({ r, c });
@@ -391,7 +414,15 @@ export class homeComponent {
         const chaveMes = XLSX.utils.encode_cell({ r, c: colMes });
         const valorMes = planilha[chaveMes]?.v;
 
-        if (valorMes === undefined || valorMes === null || String(valorMes).trim() === '') {
+        const mes = valorMes ? String(valorMes).trim() : '';
+
+        // Se o mês for vazio, contiver total/geral/acumulado ou for o próprio cabeçalho "mês", pula
+        if (!mes || 
+            mes.toLowerCase() === 'mês' || 
+            mes.toLowerCase() === 'mes' || 
+            mes.toLowerCase().includes('total') || 
+            mes.toLowerCase().includes('geral') || 
+            mes.toLowerCase().includes('acumulado')) {
           let rowHasData = false;
           for (let c = 0; c < 10; c++) {
             if (planilha[XLSX.utils.encode_cell({ r, c })]?.v !== undefined) {
@@ -399,10 +430,9 @@ export class homeComponent {
               break;
             }
           }
-          if (!rowHasData) break;
-        }
-
-        if (valorMes && (String(valorMes).toLowerCase().includes('total') || String(valorMes).toLowerCase().includes('geral'))) {
+          if (!rowHasData) {
+            break;
+          }
           continue;
         }
 
@@ -412,59 +442,75 @@ export class homeComponent {
             const col = indicesColunas[key];
             const val = planilha[XLSX.utils.encode_cell({ r, c: col })]?.v;
 
+            const ehAcumulado = k.includes('acum') || k.includes('ac.') || k.includes('ac ') || k.endsWith(' ac');
+
             if (headerName === 'Valor_Realizado') {
-              if ((k.includes('realizado') || k.includes('medido')) && !k.includes('contrato') && !k.includes('%')) {
+              if ((k.includes('realizado') || k.includes('medido')) && !k.includes('contrato') && !k.includes('%') && !ehAcumulado) {
                 if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
                   if (val !== undefined && val !== null) return val;
                 }
               }
             }
             if (headerName === 'Valor_Previsto') {
-              if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && !k.includes('contrato') && !k.includes('%')) {
+              if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && !k.includes('contrato') && !k.includes('%') && !ehAcumulado) {
                 if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
                   if (val !== undefined && val !== null) return val;
                 }
               }
             }
             if (headerName === 'Desvio_Valor') {
-              if ((k.includes('desvio') || k.includes('diferença') || k.includes('diferenca')) && !k.includes('contrato') && !k.includes('%')) {
+              if ((k.includes('desvio') || k.includes('diferença') || k.includes('diferenca')) && !k.includes('contrato') && !k.includes('%') && !ehAcumulado) {
                 if (val !== undefined && val !== null) return val;
               }
             }
             if (headerName === 'Desvio_vs_Previsto') {
-              if ((k.includes('desvio') || k.includes('variação') || k.includes('variacao')) && k.includes('previsto') && !k.includes('contrato')) {
+              if ((k.includes('desvio') || k.includes('variação') || k.includes('variacao')) && k.includes('previsto') && !k.includes('contrato') && !ehAcumulado) {
                 if (val !== undefined && val !== null) return val;
               }
-              if ((k.includes('desvio') || k.includes('variação') || k.includes('variacao')) && k.includes('%') && !k.includes('contrato')) {
+              if ((k.includes('desvio') || k.includes('variação') || k.includes('variacao')) && k.includes('%') && !k.includes('contrato') && !ehAcumulado) {
                 if (val !== undefined && val !== null) return val;
               }
             }
             if (headerName === 'Realizado_Porc_Contrato') {
-              if ((k.includes('realizado') || k.includes('medido')) && (k.includes('contrato') || k.includes('%'))) {
+              if ((k.includes('realizado') || k.includes('medido')) && (k.includes('contrato') || k.includes('%')) && !ehAcumulado) {
                 if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
                   if (val !== undefined && val !== null) return val;
                 }
               }
             }
             if (headerName === 'Previsto_Porc_Contrato') {
-              if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && (k.includes('contrato') || k.includes('%'))) {
+              if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && (k.includes('contrato') || k.includes('%')) && !ehAcumulado) {
                 if (!k.includes('desvio') && !k.includes('variação') && !k.includes('variacao') && !k.includes('diferença') && !k.includes('diferenca')) {
                   if (val !== undefined && val !== null) return val;
                 }
               }
             }
             if (headerName === 'Desvio_Porc_Contrato') {
-              if ((k.includes('desvio') || k.includes('diferença') || k.includes('diferenca')) && (k.includes('contrato') || k.includes('%'))) {
+              if ((k.includes('desvio') || k.includes('diferença') || k.includes('diferenca')) && (k.includes('contrato') || k.includes('%')) && !ehAcumulado) {
                 if (!k.includes('previsto') && !k.includes('prev')) {
                   if (val !== undefined && val !== null) return val;
                 }
+              }
+            }
+            if (headerName === 'Realizado_Acumulado') {
+              if ((k.includes('realizado') || k.includes('medido')) && ehAcumulado && !k.includes('%')) {
+                if (val !== undefined && val !== null) return val;
+              }
+            }
+            if (headerName === 'Previsto_Acumulado') {
+              if ((k.includes('previsto') || k.includes('planejado') || k.includes('orçado') || k.includes('orcado')) && ehAcumulado && !k.includes('%')) {
+                if (val !== undefined && val !== null) return val;
+              }
+            }
+            if (headerName === 'Desvio_Acumulado') {
+              if ((k.includes('desvio') || k.includes('diferença') || k.includes('diferenca')) && ehAcumulado && !k.includes('%')) {
+                if (val !== undefined && val !== null) return val;
               }
             }
           }
           return null;
         };
 
-        const mes = valorMes ? String(valorMes).trim() : '';
         let valorMedido = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Realizado'));
         let valorPrevisto = this.converterNumeroOuNulo(obterValorPorCabecalho('Valor_Previsto'));
 
@@ -473,6 +519,9 @@ export class homeComponent {
         let realizadoPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Realizado_Porc_Contrato'));
         let previstoPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Previsto_Porc_Contrato'));
         let desvioPorcContrato = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_Porc_Contrato'));
+        let realizadoAcumulado = this.converterNumeroOuNulo(obterValorPorCabecalho('Realizado_Acumulado'));
+        let previstoAcumulado = this.converterNumeroOuNulo(obterValorPorCabecalho('Previsto_Acumulado'));
+        let desvioAcumulado = this.converterNumeroOuNulo(obterValorPorCabecalho('Desvio_Acumulado'));
 
         if (mes || valorMedido !== null || valorPrevisto !== null) {
           const divisorContrato = valorContrato || 1;
@@ -527,6 +576,9 @@ export class homeComponent {
             realizadoPorcContrato,
             previstoPorcContrato,
             desvioPorcContrato,
+            realizadoAcumulado,
+            previstoAcumulado,
+            desvioAcumulado,
           });
         }
       }

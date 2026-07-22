@@ -21,6 +21,11 @@ export class Menu {
 
   items: MenuItem[] = [
     {
+      routerLink: "home",
+      icon: "fa fa-home",
+      label: "Home",
+    },
+    {
       routerLink: "fisico",
       icon: "fa fa-person-skating",
       label: "Físico",
